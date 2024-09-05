@@ -120,7 +120,7 @@ export default function Home() {
             fontFamily: '"Poppins", sans-serif',
           }}
         >
-          Welcome to the Minimalist Inventory App
+         My Small Bizz Inventory
         </Typography>
 
         {/* Search bar */}
