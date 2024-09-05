@@ -107,119 +107,122 @@ export default function Home() {
   }, []);
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '20px' }}>
-      {/* Title with more space from the top */}
-      <Typography
-        variant="h3"
-        sx={{
-          fontWeight: 700,
-          color: '#ff6f61',
-          marginTop: '40px',
-          fontFamily: '"Poppins", sans-serif',
-        }}
-      >
-        Welcome to the Minimalist Inventory App
-      </Typography>
-
-      {/* Search bar */}
-      <TextField
-        label="Search Inventory"
-        variant="outlined"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        onKeyPress={(e) => {
-          if (e.key === 'Enter') {
-            searchInventory(searchTerm);
-          }
-        }}
-        sx={{
-          width: '600px',
-          marginBottom: '20px',
-          backgroundColor: '#f0f0f0',
-          borderRadius: '8px',
-        }}
-      />
-
-      {/* Input for adding new items with button next to it */}
-      <FormControl sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-        <TextField
-          label="Add Item"
-          variant="outlined"
-          value={itemName}
-          onChange={(e) => setItemName(e.target.value)}
-          onKeyPress={(e) => {
-            if (e.key === 'Enter') {
-              addItem(itemName);
-              setItemName('');
-            }
-          }}
-          sx={{ width: '400px', backgroundColor: '#fff', borderRadius: '8px' }}
-        />
-        <Button
-          variant="contained"
-          onClick={() => {
-            addItem(itemName);
-            setItemName('');
-          }}
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      {/* Main content should take all available space */}
+      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '20px' }}>
+        {/* Title with more space from the top */}
+        <Typography
+          variant="h3"
           sx={{
-            backgroundColor: '#ff9aa2',
-            ':hover': { backgroundColor: '#ffc1c1' },
-            borderRadius: '8px',
-            padding: '8px 24px',
+            fontWeight: 700,
+            color: '#ff6f61',
+            marginTop: '40px',
+            fontFamily: '"Poppins", sans-serif',
           }}
         >
-          Add New Item
-        </Button>
-      </FormControl>
+          Welcome to the Minimalist Inventory App
+        </Typography>
 
-      {/* Sorting and Filtering Buttons */}
-      <Box className="ctas" sx={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '32px' }}>
-        {/* Sorting Buttons */}
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button variant="outlined" onClick={() => setSortBy('name')}>
-            Sort by Name
+        {/* Search bar */}
+        <TextField
+          label="Search Inventory"
+          variant="outlined"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onKeyPress={(e) => {
+            if (e.key === 'Enter') {
+              searchInventory(searchTerm);
+            }
+          }}
+          sx={{
+            width: '600px',
+            marginBottom: '20px',
+            backgroundColor: '#f0f0f0',
+            borderRadius: '8px',
+          }}
+        />
+
+        {/* Input for adding new items with button next to it */}
+        <FormControl sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
+          <TextField
+            label="Add Item"
+            variant="outlined"
+            value={itemName}
+            onChange={(e) => setItemName(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                addItem(itemName);
+                setItemName('');
+              }
+            }}
+            sx={{ width: '400px', backgroundColor: '#fff', borderRadius: '8px' }}
+          />
+          <Button
+            variant="contained"
+            onClick={() => {
+              addItem(itemName);
+              setItemName('');
+            }}
+            sx={{
+              backgroundColor: '#ff9aa2',
+              ':hover': { backgroundColor: '#ffc1c1' },
+              borderRadius: '8px',
+              padding: '8px 24px',
+            }}
+          >
+            Add New Item
           </Button>
-          <Button variant="outlined" onClick={() => setSortBy('quantity')}>
-            Sort by Quantity
-          </Button>
-          <Button variant="outlined" onClick={() => setSortBy('date')}>
-            Sort by Date Added
-          </Button>
+        </FormControl>
+
+        {/* Sorting and Filtering Buttons */}
+        <Box className="ctas" sx={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '32px' }}>
+          {/* Sorting Buttons */}
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button variant="outlined" onClick={() => setSortBy('name')}>
+              Sort by Name
+            </Button>
+            <Button variant="outlined" onClick={() => setSortBy('quantity')}>
+              Sort by Quantity
+            </Button>
+            <Button variant="outlined" onClick={() => setSortBy('date')}>
+              Sort by Date Added
+            </Button>
+          </Box>
+
+          {/* Filter Buttons */}
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button variant="outlined" onClick={() => setFilter('lowStock')}>
+              Filter by Low Stock
+            </Button>
+            <Button variant="outlined" onClick={() => setFilter('recent')}>
+              Filter Recently Added
+            </Button>
+            <Button variant="outlined" onClick={() => setFilter('all')}>
+              Show All
+            </Button>
+          </Box>
         </Box>
 
-        {/* Filter Buttons */}
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button variant="outlined" onClick={() => setFilter('lowStock')}>
-            Filter by Low Stock
-          </Button>
-          <Button variant="outlined" onClick={() => setFilter('recent')}>
-            Filter Recently Added
-          </Button>
-          <Button variant="outlined" onClick={() => setFilter('all')}>
-            Show All
-          </Button>
-        </Box>
+        {/* Inventory Grid Display */}
+        <Grid container spacing={2} sx={{ marginTop: '20px', justifyContent: 'center', maxWidth: '1200px' }}>
+          {sortInventory(filterInventory(inventory)).map(({ name, quantity, dateAdded }) => (
+            <Grid item xs={12} sm={6} md={3} key={name}>
+              <Box sx={{ border: '1px solid #ccc', padding: '10px', textAlign: 'center', borderRadius: '8px' }}>
+                <Typography variant="h6">{name.charAt(0).toUpperCase() + name.slice(1)}</Typography>
+                <Typography>Quantity: {quantity}</Typography>
+                <Typography>Date Added: {new Date(dateAdded.seconds * 1000).toLocaleString()}</Typography>
+                <Button variant="contained" color="primary" onClick={() => removeItem(name)}>
+                  Remove
+                </Button>
+              </Box>
+            </Grid>
+          ))}
+        </Grid>
       </Box>
 
-      {/* Inventory Grid Display */}
-      <Grid container spacing={2} sx={{ marginTop: '20px', justifyContent: 'center', maxWidth: '1200px' }}>
-        {sortInventory(filterInventory(inventory)).map(({ name, quantity, dateAdded }) => (
-          <Grid item xs={12} sm={6} md={3} key={name}>
-            <Box sx={{ border: '1px solid #ccc', padding: '10px', textAlign: 'center', borderRadius: '8px' }}>
-              <Typography variant="h6">{name.charAt(0).toUpperCase() + name.slice(1)}</Typography>
-              <Typography>Quantity: {quantity}</Typography>
-              <Typography>Date Added: {new Date(dateAdded.seconds * 1000).toLocaleString()}</Typography>
-              <Button variant="contained" color="primary" onClick={() => removeItem(name)}>
-                Remove
-              </Button>
-            </Box>
-          </Grid>
-        ))}
-      </Grid>
-
-      {/* Footer */}
-      <Box className="footer" sx={{ marginTop: '40px', display: 'flex', gap: '16px', justifyContent: 'center' }}>
-        <a href="#" style={{ color: '#999', textDecoration: 'none' }}>
+      {/* Footer at the bottom of the screen */}
+      <Box className="footer" sx={{ padding: '20px 0', backgroundColor: '#f8f8f8', textAlign: 'center', marginTop: 'auto' }}>
+        <a href="#" style={{ color: '#999', textDecoration: 'none', marginRight: '16px' }}>
           Terms & Conditions
         </a>
         <a href="#" style={{ color: '#999', textDecoration: 'none' }}>
