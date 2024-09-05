@@ -1,97 +1,99 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Box, Stack, Typography, Button, Modal, TextField } from '@mui/material';
+import { Box, Button, Typography, TextField, FormControl, Grid } from '@mui/material';
 import { firestore } from '@/firebase';
-import {
-  collection,
-  getDocs,
-  query,
-  setDoc,
-  deleteDoc,
-  getDoc,
-} from 'firebase/firestore';
-
-const style = {
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: 400,
-  bgcolor: 'white',
-  border: '2px solid #000',
-  boxShadow: 24,
-  p: 4,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 3,
-};
+import { collection, getDocs, setDoc, deleteDoc, getDoc, doc, query, where } from 'firebase/firestore';
 
 export default function Home() {
   const [inventory, setInventory] = useState([]);
-  const [open, setOpen] = useState(false);
   const [itemName, setItemName] = useState('');
-  const [searchTerm, setSearchTerm] = useState(''); // State for search input
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('name');
+  const [filter, setFilter] = useState('all');
 
-  // Function to fetch all inventory
+  // Fetch and update the inventory from Firestore
   const updateInventory = async () => {
     try {
       const snapshot = await getDocs(collection(firestore, 'inventory'));
       const inventoryList = [];
       snapshot.forEach((doc) => {
-        inventoryList.push({ name: doc.id, ...doc.data() }); // Use the document ID as the item name
+        inventoryList.push({ name: doc.id, ...doc.data() });
       });
       setInventory(inventoryList);
-      console.log("Fetched Inventory:", inventoryList); // Log fetched data
     } catch (error) {
       console.error('Error fetching inventory:', error.message);
     }
   };
 
-  // Function to search inventory by document ID (item name)
-  const searchInventory = async (searchTerm) => {
-    try {
-      const lowercaseSearchTerm = searchTerm.toLowerCase(); // Normalize the search term to lowercase
-      console.log("Searching for:", lowercaseSearchTerm); // Log the search term
-      
-      const snapshot = await getDocs(collection(firestore, 'inventory'));
-      const searchResults = [];
-      snapshot.forEach((doc) => {
-        if (doc.id.toLowerCase().startsWith(lowercaseSearchTerm)) { // Match document ID (item name)
-          searchResults.push({ name: doc.id, ...doc.data() });
-        }
-      });
-
-      console.log("Search Results:", searchResults); // Log search results
-      setInventory(searchResults);
-    } catch (error) {
-      console.error('Error searching inventory:', error.message);
+  // Sorting function
+  const sortInventory = (inventory) => {
+    switch (sortBy) {
+      case 'name':
+        return [...inventory].sort((a, b) => a.name.localeCompare(b.name));
+      case 'quantity':
+        return [...inventory].sort((a, b) => a.quantity - b.quantity); // Ascending by quantity
+      case 'date':
+        return [...inventory].sort((a, b) => new Date(a.dateAdded) - new Date(b.dateAdded)); // Ascending by date
+      default:
+        return inventory;
     }
   };
 
-  useEffect(() => {
-    if (searchTerm === '') {
-      // If search term is empty, load all inventory
-      updateInventory();
-    } else {
-      // Perform search when there's a search term
-      searchInventory(searchTerm);
+  // Filtering function
+  const filterInventory = (inventory) => {
+    switch (filter) {
+      case 'lowStock':
+        return inventory.filter((item) => item.quantity < 5); // Filter by low stock
+      case 'recent':
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7); // Get date one week ago
+        return inventory.filter((item) => new Date(item.dateAdded) >= oneWeekAgo); // Items added in last week
+      case 'all':
+      default:
+        return inventory;
     }
-  }, [searchTerm]); // Re-run when search term changes
+  };
 
+  // Search function
+  const searchInventory = async (searchTerm) => {
+    const q = query(
+      collection(firestore, 'inventory'),
+      where('name', '>=', searchTerm.toLowerCase()),
+      where('name', '<=', searchTerm.toLowerCase() + '\uf8ff')
+    );
+    const docs = await getDocs(q);
+    const searchResults = [];
+    docs.forEach((doc) => {
+      searchResults.push({ name: doc.id, ...doc.data() });
+    });
+    setInventory(searchResults);
+  };
+
+  // Add new item to Firestore
   const addItem = async (item) => {
     try {
-      const lowercaseItem = item.toLowerCase(); // Store item names in lowercase
-      const docRef = setDoc(doc(collection(firestore, 'inventory'), lowercaseItem), { quantity: 1 });
+      const lowercaseItem = item.toLowerCase();
+      const docRef = doc(collection(firestore, 'inventory'), lowercaseItem);
+      const docSnap = await getDoc(docRef);
+      const currentTime = new Date();
+
+      if (docSnap.exists()) {
+        const { quantity } = docSnap.data();
+        await setDoc(docRef, { quantity: quantity + 1 }, { merge: true });
+      } else {
+        await setDoc(docRef, { quantity: 1, dateAdded: currentTime });
+      }
       await updateInventory();
     } catch (error) {
       console.error('Error adding item:', error.message);
     }
   };
 
+  // Remove item from Firestore
   const removeItem = async (item) => {
     try {
-      const lowercaseItem = item.toLowerCase(); // Match item names in lowercase
+      const lowercaseItem = item.toLowerCase();
       const docRef = doc(collection(firestore, 'inventory'), lowercaseItem);
       await deleteDoc(docRef);
       await updateInventory();
@@ -100,108 +102,129 @@ export default function Home() {
     }
   };
 
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  useEffect(() => {
+    updateInventory();
+  }, []);
 
   return (
-    <Box
-      width="100vw"
-      height="100vh"
-      display={'flex'}
-      justifyContent={'center'}
-      flexDirection={'column'}
-      alignItems={'center'}
-      gap={2}
-    >
-      <Modal
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '20px' }}>
+      {/* Title with more space from the top */}
+      <Typography
+        variant="h3"
+        sx={{
+          fontWeight: 700,
+          color: '#ff6f61',
+          marginTop: '40px',
+          fontFamily: '"Poppins", sans-serif',
+        }}
       >
-        <Box sx={style}>
-          <Typography id="modal-modal-title" variant="h6" component="h2">
-            Add Item
-          </Typography>
-          <Stack width="100%" direction={'row'} spacing={2}>
-            <TextField
-              id="outlined-basic"
-              label="Item"
-              variant="outlined"
-              fullWidth
-              value={itemName}
-              onChange={(e) => setItemName(e.target.value)}
-            />
-            <Button
-              variant="outlined"
-              onClick={() => {
-                addItem(itemName);
-                setItemName('');
-                handleClose();
-              }}
-            >
-              Add
-            </Button>
-          </Stack>
-        </Box>
-      </Modal>
-      <Button variant="contained" onClick={handleOpen}>
-        Add New Item
-      </Button>
+        Welcome to the Minimalist Inventory App
+      </Typography>
 
       {/* Search bar */}
       <TextField
         label="Search Inventory"
         variant="outlined"
-        fullWidth
         value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)} // Update search term state
-        sx={{ marginBottom: '20px', width: '50%' }}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        onKeyPress={(e) => {
+          if (e.key === 'Enter') {
+            searchInventory(searchTerm);
+          }
+        }}
+        sx={{
+          width: '600px',
+          marginBottom: '20px',
+          backgroundColor: '#f0f0f0',
+          borderRadius: '8px',
+        }}
       />
 
-      <Box border={'1px solid #333'}>
-        <Box
-          width="800px"
-          height="100px"
-          bgcolor={'#ADD8E6'}
-          display={'flex'}
-          justifyContent={'center'}
-          alignItems={'center'}
+      {/* Input for adding new items with button next to it */}
+      <FormControl sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
+        <TextField
+          label="Add Item"
+          variant="outlined"
+          value={itemName}
+          onChange={(e) => setItemName(e.target.value)}
+          onKeyPress={(e) => {
+            if (e.key === 'Enter') {
+              addItem(itemName);
+              setItemName('');
+            }
+          }}
+          sx={{ width: '400px', backgroundColor: '#fff', borderRadius: '8px' }}
+        />
+        <Button
+          variant="contained"
+          onClick={() => {
+            addItem(itemName);
+            setItemName('');
+          }}
+          sx={{
+            backgroundColor: '#ff9aa2',
+            ':hover': { backgroundColor: '#ffc1c1' },
+            borderRadius: '8px',
+            padding: '8px 24px',
+          }}
         >
-          <Typography variant={'h2'} color={'#333'} textAlign={'center'}>
-            Inventory Items
-          </Typography>
+          Add New Item
+        </Button>
+      </FormControl>
+
+      {/* Sorting and Filtering Buttons */}
+      <Box className="ctas" sx={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '32px' }}>
+        {/* Sorting Buttons */}
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button variant="outlined" onClick={() => setSortBy('name')}>
+            Sort by Name
+          </Button>
+          <Button variant="outlined" onClick={() => setSortBy('quantity')}>
+            Sort by Quantity
+          </Button>
+          <Button variant="outlined" onClick={() => setSortBy('date')}>
+            Sort by Date Added
+          </Button>
         </Box>
-        <Stack width="800px" height="300px" spacing={2} overflow={'auto'}>
-          {inventory.length > 0 ? (
-            inventory.map(({ name, quantity }) => (
-              <Box
-                key={name}
-                width="100%"
-                minHeight="150px"
-                display={'flex'}
-                justifyContent={'space-between'}
-                alignItems={'center'}
-                bgcolor={'#f0f0f0'}
-                paddingX={5}
-              >
-                <Typography variant={'h3'} color={'#333'} textAlign={'center'}>
-                  {name.charAt(0).toUpperCase() + name.slice(1)}
-                </Typography>
-                <Typography variant={'h3'} color={'#333'} textAlign={'center'}>
-                  Quantity: {quantity}
-                </Typography>
-                <Button variant="contained" onClick={() => removeItem(name)}>
-                  Remove
-                </Button>
-              </Box>
-            ))
-          ) : (
-            <Typography variant={'h6'} color={'#333'} textAlign={'center'}>
-              No items found.
-            </Typography>
-          )}
-        </Stack>
+
+        {/* Filter Buttons */}
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button variant="outlined" onClick={() => setFilter('lowStock')}>
+            Filter by Low Stock
+          </Button>
+          <Button variant="outlined" onClick={() => setFilter('recent')}>
+            Filter Recently Added
+          </Button>
+          <Button variant="outlined" onClick={() => setFilter('all')}>
+            Show All
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Inventory Grid Display */}
+      <Grid container spacing={2} sx={{ marginTop: '20px', justifyContent: 'center', maxWidth: '1200px' }}>
+        {sortInventory(filterInventory(inventory)).map(({ name, quantity, dateAdded }) => (
+          <Grid item xs={12} sm={6} md={3} key={name}>
+            <Box sx={{ border: '1px solid #ccc', padding: '10px', textAlign: 'center', borderRadius: '8px' }}>
+              <Typography variant="h6">{name.charAt(0).toUpperCase() + name.slice(1)}</Typography>
+              <Typography>Quantity: {quantity}</Typography>
+              <Typography>Date Added: {new Date(dateAdded.seconds * 1000).toLocaleString()}</Typography>
+              <Button variant="contained" color="primary" onClick={() => removeItem(name)}>
+                Remove
+              </Button>
+            </Box>
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* Footer */}
+      <Box className="footer" sx={{ marginTop: '40px', display: 'flex', gap: '16px', justifyContent: 'center' }}>
+        <a href="#" style={{ color: '#999', textDecoration: 'none' }}>
+          Terms & Conditions
+        </a>
+        <a href="#" style={{ color: '#999', textDecoration: 'none' }}>
+          Privacy Policy
+        </a>
       </Box>
     </Box>
   );
