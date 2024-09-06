@@ -1,14 +1,18 @@
+Here's the revised README with a link to your live app:
+
+---
+
 # Inventory Management Application
 
-This project is a **Next.js-based Inventory Management App** that allows users to efficiently manage inventory, including batch uploading of items, sorting, filtering, and Firebase authentication.
+This project is a **Next.js-based Inventory Management App** that enables users to efficiently manage inventory, including batch uploading of items, sorting, filtering, and Firebase authentication.
 
 ## Features
 
-- **Batch Item Upload**: Users can bulk add or update items through CSV/Excel file uploads, streamlining the inventory management process for businesses.
-- **Low Stock Alerts**: Automatically highlights items with stock below a specified threshold.
-- **Inventory Sorting**: Users can sort inventory by name, quantity, or date added.
+- **Batch Item Upload**: Bulk add or update items through CSV/Excel file uploads, simplifying inventory management.
+- **Low Stock Alerts**: Highlights items with stock below a specific threshold.
+- **Inventory Sorting**: Sort by name, quantity, or date added for easy organization.
 - **Firebase Integration**: Secure user authentication and real-time database storage using Firebase.
-- **Active/Inactive Status**: Users can filter items based on their status, ensuring only relevant products are displayed.
+- **Active/Inactive Status**: Filter inventory items based on their status.
 
 ## Technologies Used
 
@@ -16,7 +20,12 @@ This project is a **Next.js-based Inventory Management App** that allows users t
 - **React**
 - **Firebase (Auth & Firestore)**
 - **Material-UI (MUI)**
-- **CSV Parsing**: Using `PapaParse` for CSV handling and `xlsx` for Excel file processing.
+- **CSV/Excel Parsing**: With `PapaParse` and `xlsx` libraries.
+
+## Live Demo
+
+Check out the live version of the app:  
+[**Inventory Management App**](https://inventory-management-six-drab.vercel.app)
 
 ## Installation
 
@@ -47,3 +56,14 @@ This project is a **Next.js-based Inventory Management App** that allows users t
 - **Analytics dashboard** to track stock performance.
 - **Role-based access control** for multi-user management.
 
+## Contact
+
+Feel free to reach out for any questions or opportunities:
+
+- **Name**: [Your Name]
+- **Email**: your-email@example.com
+- **LinkedIn**: [LinkedIn Profile](https://linkedin.com/in/yourprofile)
+
+---
+
+This version includes the link to the live app on Vercel. Let me know if this works or if you need any further adjustments!
