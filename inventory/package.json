@@ -14,8 +14,10 @@
     "@mui/material": "^6.0.2",
     "firebase": "^10.13.1",
     "next": "14.2.8",
+    "papaparse": "^5.4.1",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "eslint": "^8",

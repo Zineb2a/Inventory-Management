@@ -5,6 +5,8 @@ import { signUp, logIn, logOut } from '../auth'; // Import Firebase auth functio
 import { addItem, fetchInventory, removeItem } from '../inventory'; // Import Firestore inventory functions
 import { onAuthStateChanged } from 'firebase/auth'; // Import Firebase auth state change detection
 import { auth } from '../firebase'; // Import Firebase auth instance
+import BatchUpload from '../batchupload'; // Adjust the path to where BatchUpload is located
+
 
 export default function Home() {
   // Authentication state
@@ -21,6 +23,16 @@ export default function Home() {
   const [sortBy, setSortBy] = useState('name'); // Sorting
   const [filter, setFilter] = useState('all'); // Filtering
   const [open, setOpen] = useState(false); // Control modal visibility
+
+  // State to track if we're showing active or inactive products
+const [showActive, setShowActive] = useState(true);
+
+// Toggle between active and inactive products
+const toggleActiveProducts = () => {
+  setShowActive(!showActive);
+  setFilter(showActive ? 'inactive' : 'active'); // Toggle the filter based on the current state
+};
+
 
   // Fetch inventory for authenticated users
   const fetchAllProducts = async () => {
@@ -100,15 +112,25 @@ export default function Home() {
 
   // Remove an item
   const handleRemoveItem = async (item) => {
-    if (window.confirm(`Are you sure you want to remove ${item}?`)) {
+    const quantityToRemove = window.prompt(`How many units of ${item} would you like to remove?`, "1");
+  
+    // Ensure the quantityToRemove is a valid number
+    if (!quantityToRemove || isNaN(quantityToRemove) || quantityToRemove <= 0) {
+      setErrorMessage('Please enter a valid quantity.');
+      return;
+    }
+  
+    // Confirm with the user before proceeding
+    if (window.confirm(`Are you sure you want to remove ${quantityToRemove} units of ${item}?`)) {
       try {
-        await removeItem(item);
+        await removeItem(item, parseInt(quantityToRemove)); // Pass the quantity to the removeItem function
         fetchAllProducts(); // Refresh the inventory
       } catch (error) {
         setErrorMessage('Error removing item: ' + error.message);
       }
     }
   };
+  
 
   // Search functionality
   const searchInventory = (searchTerm) => {
@@ -136,7 +158,6 @@ export default function Home() {
     }
   };
 
-  // Filtering functionality
   const filterInventory = (inventory) => {
     switch (filter) {
       case 'lowStock':
@@ -147,11 +168,14 @@ export default function Home() {
         return inventory.filter((item) => new Date(item.dateAdded) >= oneWeekAgo); // Items added in last week
       case 'active':
         return inventory.filter((item) => item.status === 'active'); // Only show active products
+      case 'inactive':
+        return inventory.filter((item) => item.status === 'inactive'); // Only show inactive products
       case 'all':
       default:
-        return inventory;
+        return inventory; // Show all products (active and inactive)
     }
   };
+  
 
   // Handle opening/closing the modal
   const handleOpen = () => setOpen(true);
@@ -300,23 +324,46 @@ export default function Home() {
           </Button>
 
           {/* Sorting and Filtering Buttons */}
-          <Box sx={{ display: 'flex', gap: 2, marginTop: '20px' }}>
-            <Button variant="outlined" onClick={() => setSortBy('name')}>
-              Sort by Name
-            </Button>
-            <Button variant="outlined" onClick={() => setSortBy('quantity')}>
-              Sort by Quantity
-            </Button>
-            <Button variant="outlined" onClick={() => setSortBy('date')}>
-              Sort by Date Added
-            </Button>
-            <Button variant="outlined" onClick={() => setFilter('lowStock')}>
-              Filter by Low Stock
-            </Button>
-            <Button variant="outlined" onClick={() => setFilter('active')}>
-              Show Active Products
-            </Button>
-          </Box>
+  
+<Box sx={{ display: 'flex', justifyContent: 'center', marginTop: '10px', marginBottom: '20px' }}>
+<Button
+  variant="outlined"
+  onClick={toggleActiveProducts}
+  sx={{
+    color: showActive ? '#ff6f61' : '#4caf50', // Active products button color (red) and inactive (green)
+    borderColor: showActive ? '#ff6f61' : '#4caf50', // Matching border color
+    ':hover': {
+      backgroundColor: showActive ? '#ffe6e1' : '#e8f5e9', // Lighter background on hover
+      borderColor: showActive ? '#ff8a75' : '#66bb6a', // Darker border on hover
+    },
+    transition: 'background-color 0.3s ease, border-color 0.3s ease', // Smooth transition
+    padding: '10px 20px',
+    borderRadius: '24px',
+  }}
+>
+  {showActive ? 'Show Inactive Products' : 'Show Active Products'}
+</Button>
+
+</Box>
+<Box sx={{ display: 'flex', gap: 2, marginTop: '20px' }}>
+  <Button variant="outlined" onClick={() => setSortBy('name')}>
+    Sort by Name
+  </Button>
+  <Button variant="outlined" onClick={() => setSortBy('quantity')}>
+    Sort by Quantity
+  </Button>
+  <Button variant="outlined" onClick={() => setSortBy('date')}>
+    Sort by Date Added
+  </Button>
+  <Button variant="outlined" onClick={() => setFilter('lowStock')}>
+    Filter by Low Stock
+  </Button>
+</Box>
+ {/* Batch Upload Section */}
+ <Box sx={{ marginTop: '40px', width: '100%', textAlign: 'center' }}>
+        <BatchUpload /> {/* This renders the batch upload functionality */}
+      </Box>
+
 
           {/* Inventory Grid Display */}
           <Grid container spacing={2} sx={{ marginTop: '20px', justifyContent: 'center', maxWidth: '1200px' }}>

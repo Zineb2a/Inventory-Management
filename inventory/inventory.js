@@ -1,6 +1,7 @@
 import { firestore } from './firebase';
-import { collection, doc, setDoc, getDoc, getDocs, deleteDoc } from 'firebase/firestore'; // Ensure deleteDoc is imported
 import { auth } from './firebase';
+import { collection, doc, setDoc, getDoc, getDocs, deleteDoc } from 'firebase/firestore'; // Ensure deleteDoc is imported
+
 
 // Function to add an item to the user's inventory
 export const addItem = async (itemName, quantity) => {
@@ -45,8 +46,7 @@ export const fetchInventory = async () => {
   }
 };
 
-// Function to remove an item from the user's inventory
-export const removeItem = async (itemName) => {
+export const removeItem = async (itemName, quantityToRemove) => {
   try {
     const user = auth.currentUser;
     if (!user) {
@@ -55,12 +55,31 @@ export const removeItem = async (itemName) => {
     }
 
     const uid = user.uid;
-    // Update the path to match the correct inventory location
     const docRef = doc(firestore, `users/${uid}/inventory`, itemName.toLowerCase());
 
-    await deleteDoc(docRef);
-    console.log(`${itemName} removed from inventory.`);
+    // Fetch the document to check the current quantity
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const currentData = docSnap.data();
+      const currentQuantity = currentData.quantity;
+
+      if (currentQuantity >= quantityToRemove) {
+        // Reduce the quantity or mark as inactive if it reaches 0
+        const newQuantity = currentQuantity - quantityToRemove;
+        if (newQuantity > 0) {
+          await setDoc(docRef, { quantity: newQuantity }, { merge: true });
+        } else {
+          await setDoc(docRef, { quantity: 0, status: 'inactive' }, { merge: true });
+        }
+      } else {
+        console.error('Not enough quantity to remove.');
+        throw new Error('The quantity to remove exceeds the current stock.');
+      }
+    } else {
+      console.error('Item not found.');
+    }
   } catch (error) {
     console.error('Error removing item from Firestore:', error.message);
+    throw error;
   }
 };
