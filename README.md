@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Inventory Management Application
 
-## Getting Started
+This project is a **Next.js-based Inventory Management App** that allows users to efficiently manage inventory, including batch uploading of items, sorting, filtering, and Firebase authentication.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Batch Item Upload**: Users can bulk add or update items through CSV/Excel file uploads, streamlining the inventory management process for businesses.
+- **Low Stock Alerts**: Automatically highlights items with stock below a specified threshold.
+- **Inventory Sorting**: Users can sort inventory by name, quantity, or date added.
+- **Firebase Integration**: Secure user authentication and real-time database storage using Firebase.
+- **Active/Inactive Status**: Users can filter items based on their status, ensuring only relevant products are displayed.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Technologies Used
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+- **Next.js 13+**
+- **React**
+- **Firebase (Auth & Firestore)**
+- **Material-UI (MUI)**
+- **CSV Parsing**: Using `PapaParse` for CSV handling and `xlsx` for Excel file processing.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Installation
 
-## Learn More
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/your-username/inventory-management-app.git
+   cd inventory-management-app
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **Set up Firebase**:
+   - Add your Firebase credentials in a `.env.local` file.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. **Run the app**:
+   ```bash
+   npm run dev
+   ```
 
-## Deploy on Vercel
+   The app will be available at [http://localhost:3000](http://localhost:3000).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Future Improvements
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Pagination for large inventories**.
+- **Analytics dashboard** to track stock performance.
+- **Role-based access control** for multi-user management.
+
