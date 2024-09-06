@@ -1,4 +1,6 @@
 'use client';
+
+
 import { useState, useEffect } from 'react';
 import { Box, Button, Typography, TextField, FormControl, Grid, Modal } from '@mui/material';
 import { signUp, logIn, logOut } from '../auth'; // Import Firebase auth functions
@@ -14,6 +16,9 @@ export default function Home() {
   const [password, setPassword] = useState('');
   const [user, setUser] = useState(null); // Track logged-in user
   const [errorMessage, setErrorMessage] = useState('');
+
+
+  const [title, setTitle] = useState('My Awesome Next.js App');
 
   // Inventory state
   const [inventory, setInventory] = useState([]);
@@ -182,7 +187,12 @@ const toggleActiveProducts = () => {
   const handleClose = () => setOpen(false);
 
   return (
+   
+     
+  
+
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', alignItems: 'center', padding: '20px' }}>
+      
       <Typography variant="h3" sx={{ fontWeight: 700, color: '#ff6f61', marginBottom: '20px' }}>
         Inventory Management
       </Typography>
