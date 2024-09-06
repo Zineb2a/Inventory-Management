@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { Box, Button, Typography, TextField, FormControl, Grid, Modal } from '@mui/material';
 import { signUp, logIn, logOut } from '../auth'; // Import Firebase auth functions
 import { addItem, fetchInventory, removeItem } from '../inventory'; // Import Firestore inventory functions
+import { onAuthStateChanged } from 'firebase/auth'; // Import Firebase auth state change detection
+import { auth } from '../firebase'; // Import Firebase auth instance
 
 export default function Home() {
   // Authentication state
@@ -32,10 +34,18 @@ export default function Home() {
 
   // Check user login status and fetch inventory if logged in
   useEffect(() => {
-    if (user) {
-      fetchAllProducts();
-    }
-  }, [user]);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        fetchAllProducts(); // Fetch inventory for the user
+      } else {
+        setUser(null); // No user is logged in
+        setInventory([]); // Clear inventory
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup subscription on unmount
+  }, []);
 
   // Handle sign-up with email and password
   const handleSignUp = async () => {
@@ -74,7 +84,7 @@ export default function Home() {
   const handleAddItem = async () => {
     if (itemName && quantity > 0) {
       try {
-        await addItem(itemName, quantity);
+        await addItem(itemName.toLowerCase(), quantity); // Convert itemName to lowercase to avoid case sensitivity issues
         fetchAllProducts(); // Refresh the inventory
         setOpen(false); // Close modal after adding item
         setItemName(''); // Reset item name
@@ -90,11 +100,13 @@ export default function Home() {
 
   // Remove an item
   const handleRemoveItem = async (item) => {
-    try {
-      await removeItem(item);
-      fetchAllProducts(); // Refresh the inventory
-    } catch (error) {
-      setErrorMessage('Error removing item: ' + error.message);
+    if (window.confirm(`Are you sure you want to remove ${item}?`)) {
+      try {
+        await removeItem(item);
+        fetchAllProducts(); // Refresh the inventory
+      } catch (error) {
+        setErrorMessage('Error removing item: ' + error.message);
+      }
     }
   };
 
@@ -152,106 +164,106 @@ export default function Home() {
       </Typography>
 
       {!user ? (
-  <Box
-    sx={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 3,
-      padding: '40px',
-      border: '1px solid #ddd',
-      borderRadius: '12px',
-      boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-      width: '400px',
-      margin: '0 auto',
-      backgroundColor: '#fff',
-    }}
-  >
-    <Typography variant="h5" sx={{ fontWeight: 700, color: '#ff6f61', marginBottom: '20px' }}>
-      Sign In / Sign Up
-    </Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 3,
+            padding: '40px',
+            border: '1px solid #ddd',
+            borderRadius: '12px',
+            boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+            width: '400px',
+            margin: '0 auto',
+            backgroundColor: '#fff',
+          }}
+        >
+          <Typography variant="h5" sx={{ fontWeight: 700, color: '#ff6f61', marginBottom: '20px' }}>
+            Sign In / Sign Up
+          </Typography>
 
-    <TextField
-      label="Email"
-      variant="outlined"
-      value={email}
-      onChange={(e) => setEmail(e.target.value)}
-      sx={{
-        width: '100%',
-        '& .MuiOutlinedInput-root': {
-          borderRadius: '12px',
-        },
-      }}
-    />
-    <TextField
-      label="Password"
-      type="password"
-      variant="outlined"
-      value={password}
-      onChange={(e) => setPassword(e.target.value)}
-      sx={{
-        width: '100%',
-        '& .MuiOutlinedInput-root': {
-          borderRadius: '12px',
-        },
-      }}
-    />
-    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', marginTop: '20px' }}>
-      <Button
-        variant="contained"
-        onClick={handleSignUp}
-        sx={{
-          backgroundColor: '#ff6f61',
-          ':hover': {
-            backgroundColor: '#ff8a75',
-          },
-          borderRadius: '24px',
-          padding: '10px 20px',
-        }}
-      >
-        Sign Up
-      </Button>
-      <Button
-        variant="outlined"
-        onClick={handleLogIn}
-        sx={{
-          color: '#ff6f61',
-          borderColor: '#ff6f61',
-          ':hover': {
-            backgroundColor: '#ffebeb',
-            borderColor: '#ff8a75',
-          },
-          borderRadius: '24px',
-          padding: '10px 20px',
-        }}
-      >
-        Log In
-      </Button>
-    </Box>
-    {errorMessage && (
-      <Typography color="error" sx={{ marginTop: '20px', textAlign: 'center' }}>
-        {errorMessage}
-      </Typography>
-    )}
-  </Box>
-) : (
-  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-    <Typography>Welcome, {user.email}!</Typography>
-    <Button
-      variant="contained"
-      onClick={handleLogOut}
-      sx={{
-        backgroundColor: '#ff6f61',
-        ':hover': {
-          backgroundColor: '#ff8a75',
-        },
-        borderRadius: '24px',
-        padding: '10px 20px',
-      }}
-    >
-      Log Out
-    </Button>
+          <TextField
+            label="Email"
+            variant="outlined"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            sx={{
+              width: '100%',
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '12px',
+              },
+            }}
+          />
+          <TextField
+            label="Password"
+            type="password"
+            variant="outlined"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            sx={{
+              width: '100%',
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '12px',
+              },
+            }}
+          />
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', marginTop: '20px' }}>
+            <Button
+              variant="contained"
+              onClick={handleSignUp}
+              sx={{
+                backgroundColor: '#ff6f61',
+                ':hover': {
+                  backgroundColor: '#ff8a75',
+                },
+                borderRadius: '24px',
+                padding: '10px 20px',
+              }}
+            >
+              Sign Up
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={handleLogIn}
+              sx={{
+                color: '#ff6f61',
+                borderColor: '#ff6f61',
+                ':hover': {
+                  backgroundColor: '#ffebeb',
+                  borderColor: '#ff8a75',
+                },
+                borderRadius: '24px',
+                padding: '10px 20px',
+              }}
+            >
+              Log In
+            </Button>
+          </Box>
+          {errorMessage && (
+            <Typography color="error" sx={{ marginTop: '20px', textAlign: 'center' }}>
+              {errorMessage}
+            </Typography>
+          )}
+        </Box>
+      ) : (
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+          <Typography>Welcome, {user.email}!</Typography>
+          <Button
+            variant="contained"
+            onClick={handleLogOut}
+            sx={{
+              backgroundColor: '#ff6f61',
+              ':hover': {
+                backgroundColor: '#ff8a75',
+              },
+              borderRadius: '24px',
+              padding: '10px 20px',
+            }}
+          >
+            Log Out
+          </Button>
 
           {/* Search bar */}
           <TextField
@@ -358,6 +370,13 @@ export default function Home() {
           <Button variant="contained" onClick={handleAddItem}>Add Item</Button>
         </Box>
       </Modal>
+
+      {/* Error Message */}
+      {errorMessage && (
+        <Typography color="error" sx={{ marginTop: '20px', textAlign: 'center' }}>
+          {errorMessage}
+        </Typography>
+      )}
     </Box>
   );
 }
