@@ -1,6 +1,3 @@
-Here's the revised README with a link to your live app:
-
----
 
 # Inventory Management Application
 
@@ -55,15 +52,3 @@ Check out the live version of the app:
 - **Pagination for large inventories**.
 - **Analytics dashboard** to track stock performance.
 - **Role-based access control** for multi-user management.
-
-## Contact
-
-Feel free to reach out for any questions or opportunities:
-
-- **Name**: [Your Name]
-- **Email**: your-email@example.com
-- **LinkedIn**: [LinkedIn Profile](https://linkedin.com/in/yourprofile)
-
----
-
-This version includes the link to the live app on Vercel. Let me know if this works or if you need any further adjustments!
