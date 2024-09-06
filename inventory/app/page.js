@@ -132,9 +132,14 @@ export default function Home() {
       case 'name':
         return [...inventory].sort((a, b) => a.name.localeCompare(b.name));
       case 'quantity':
-        return [...inventory].sort((a, b) => a.quantity - b.quantity); // Ascending by quantity
-      case 'date':
-        return [...inventory].sort((a, b) => new Date(a.dateAdded) - new Date(b.dateAdded)); // Ascending by date
+        return [...inventory].sort((a, b) => b.quantity - a.quantity); // Descending by quantity
+        case 'date':
+          return [...inventory].sort((a, b) => {
+            const dateA = a.dateAdded?.seconds ? new Date(a.dateAdded.seconds * 1000) : new Date();
+            const dateB = b.dateAdded?.seconds ? new Date(b.dateAdded.seconds * 1000) : new Date();
+            return dateB - dateA; // Descending by date
+          });
+        
       default:
         return inventory;
     }
@@ -171,7 +176,7 @@ export default function Home() {
             fontFamily: '"Poppins", sans-serif',
           }}
         >
-          Welcome to the Minimalist Inventory App
+          My Small Bizz Inventory
         </Typography>
 
         {/* Search bar */}
@@ -237,9 +242,7 @@ export default function Home() {
           <Button variant="outlined" onClick={() => setFilter('lowStock')}>
             Filter by Low Stock
           </Button>
-          <Button variant="outlined" onClick={() => setFilter('recent')}>
-            Filter Recently Added
-          </Button>
+       
          
           <Button variant="outlined" onClick={() => setFilter('active')}> Show Active Products </Button> </Box>
             {/* Inventory Grid Display */}
