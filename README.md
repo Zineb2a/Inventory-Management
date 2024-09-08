@@ -1,5 +1,6 @@
 
-# Inventory Management Application
+# [**Inventory Management App**](https://inventory-management-six-drab.vercel.app)
+
 <img width="1186" alt="Screenshot 2024-09-06 at 16 17 48" src="https://github.com/user-attachments/assets/d7ecdd2b-0113-46a0-ad43-ccc9da037197">
 
 This project is a **Next.js-based Inventory Management App** that enables users to efficiently manage inventory, including batch uploading of items, sorting, filtering, and Firebase authentication.
